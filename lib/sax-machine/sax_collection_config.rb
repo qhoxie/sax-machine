@@ -12,8 +12,6 @@ module SAXMachine
         if options.has_key?(:with)
           # for faster comparisons later
           @with = options[:with].to_a.flatten.collect {|o| o.to_s}
-        else
-          @with = nil
         end
       end
       
