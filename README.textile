@@ -1,3 +1,32 @@
+h1. Fork: Laziness
+
+This fork adds the option of declaring *one* set of elements as lazy.
+The Nokogiri Sax parser already operates in constant memory, however Sax Machine fills up memory creating your Ruby objects.
+Laziness will parse the elements one at a time- allowing for constant memory usage with respect to the Ruby objects.
+
+<pre>
+class Atom
+  include SAXMachine
+  element :title
+  elements :entry, :lazy => true, :as => :entries, :class => AtomEntry
+end
+
+feed = Atom.parse(xml_file_handle)
+feed.entries # => #<Enumerator: #<Enumerator::Generator:0x00000004c41ea0>:each> 
+feed.entries.each do |entry|
+  # no memory blow up!
+end
+</pre>
+
+
+h2. Warning !!!
+If you use the lazy option twice, or if the class using this laziness is referenced from multiple other classes, the behavior will be incorrect.
+
+h2. Caution
+The overall speed with laziness may be slower if you can already fit everything into memory.
+Once you traverse the lazy enumerator (with #each) it will be empty.
+
+
 h1. SAX Machine
 
 "http://github.com/pauldix/sax-machine/wikis":http://github.com/pauldix/sax-machine/wikis

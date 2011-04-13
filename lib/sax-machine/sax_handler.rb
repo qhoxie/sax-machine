@@ -65,7 +65,7 @@ module SAXMachine
           if econf = subconfig.element_config_for_tag(name,[])
             element.send(econf.setter, value) unless econf.value_configured?
           end
-          object.send(config.accessor) << element
+          object.send(config.accessor, element)
         else
           if config.data_class
             tmp = value
