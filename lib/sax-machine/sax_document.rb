@@ -11,7 +11,6 @@ module SAXMachine
     @parser = Fiber.new do 
       Nokogiri::XML::SAX::Parser.new( SAXHandler.new(self) ).parse(thing)
     end
-    @use_this_value = @parser.resume
     self
   end
   
@@ -103,10 +102,6 @@ module SAXMachine
           def #{options[:as]} value = nil
             return Fiber.yield value if value
             @#{options[:as]} ||= Enumerator.new do |yielderr|
-              if @use_this_value
-                yielderr << @use_this_value
-                @use_this_value = nil
-              end
               while r = @parser.resume
                 yielderr << r
               end
