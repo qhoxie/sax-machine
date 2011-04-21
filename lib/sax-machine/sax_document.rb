@@ -2,13 +2,16 @@ require "nokogiri"
 require 'fiber'
 
 module SAXMachine
-  
   def self.included(base)
     base.extend ClassMethods
   end
   
-  def parse(thing)
-    @parser = Fiber.new do 
+  def parse(thing, options = {})
+    if options[:lazy]
+      @parser = Fiber.new do 
+        Nokogiri::XML::SAX::Parser.new( SAXHandler.new(self) ).parse(thing)
+      end
+    else
       Nokogiri::XML::SAX::Parser.new( SAXHandler.new(self) ).parse(thing)
     end
     self
@@ -16,8 +19,8 @@ module SAXMachine
   
   module ClassMethods
 
-    def parse(xml_text)
-      new.parse(xml_text)
+    def parse(*args)
+      new.parse(*args)
     end
     
     def element(name, options = {})
@@ -71,36 +74,32 @@ module SAXMachine
       if options[:class]
         sax_config.add_collection_element(name, options)
       else
-        unless options[:lazy]
-          class_eval <<-SRC
-            def add_#{options[:as]}(value)
-              #{options[:as]} << value
-            end
-          SRC
-        else
-          class_eval <<-SRC
-            def add_#{options[:as]}(value)
-              Fiber.yield value
-            end
-          SRC
-        end
         sax_config.add_top_level_element(name, options.merge(:collection => true))
+      end
+
+      unless options[:lazy]
+        class_eval <<-SRC
+          def add_#{options[:as]}(value)
+            #{options[:as]} << value
+          end
+        SRC
+      else
+        class_eval <<-SRC
+          def add_#{options[:as]}(value)
+            Fiber.yield value
+          end
+        SRC
       end
       
       unless options[:lazy]
         class_eval <<-SRC if !instance_methods.include?(options[:as].to_s)
-          def #{options[:as]} value = nil
-            if value
-              #{options[:as]} << value
-              return
-            end
+          def #{options[:as]}
             @#{options[:as]} ||= []
           end
         SRC
       else
         class_eval <<-SRC 
-          def #{options[:as]} value = nil
-            return Fiber.yield value if value
+          def #{options[:as]}
             @#{options[:as]} ||= Enumerator.new do |yielderr|
               while r = @parser.resume
                 yielderr << r

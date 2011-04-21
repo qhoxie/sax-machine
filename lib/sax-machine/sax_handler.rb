@@ -55,7 +55,6 @@ module SAXMachine
       (object, tag_config, _), (element, config, value) = stack[-2..-1]
       return unless stack.size > 1 && config && config.name.to_s == name.to_s
 
-      unless parsed_config?(object, config)
         if (element_value_config = config.data_class.respond_to?(:sax_config) && config.data_class.sax_config.element_values_for_element)
           element_value_config.each { |evc| element.send(evc.setter, value) }
         end
@@ -65,7 +64,7 @@ module SAXMachine
           if econf = subconfig.element_config_for_tag(name,[])
             element.send(econf.setter, value) unless econf.value_configured?
           end
-          object.send(config.accessor, element)
+          object.send("add_#{config.accessor}", element)
         else
           if config.data_class
             tmp = value
@@ -77,6 +76,7 @@ module SAXMachine
           object.send(config.setter, value) unless value == ""
           mark_as_parsed(object, config)
         end
+      unless parsed_config?(object, config)
       end
       stack.pop
     end
