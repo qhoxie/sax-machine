@@ -11,7 +11,7 @@ class Atom
   elements :entry, :lazy => true, :as => :entries, :class => AtomEntry
 end
 
-feed = Atom.parse(xml_file_handle)
+feed = Atom.parse(xml_file_handle, :lazy => true)
 feed.entries # => #<Enumerator: #<Enumerator::Generator:0x00000004c41ea0>:each> 
 feed.entries.each do |entry|
   # no memory blow up!
@@ -20,7 +20,8 @@ end
 
 
 h2. Warning !!!
-If you use the lazy option twice, or if the class using this laziness is referenced from multiple other classes, the behavior will be incorrect.
+* There are failing test cases on this branch- there are known bugs.
+* If you use the lazy option twice, or if the class using this laziness is referenced from multiple other classes, the behavior will be incorrect.
 
 h2. Caution
 The overall speed with laziness may be slower if you can already fit everything into memory.
