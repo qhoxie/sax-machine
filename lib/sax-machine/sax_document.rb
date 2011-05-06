@@ -26,27 +26,13 @@ module SAXMachine
     def element(name, options = {})
       options[:as] ||= name
       sax_config.add_top_level_element(name, options)
-      __add_accessors__  options
-    end
-
-    def attribute(name, options = {})
-      options[:as] ||= name
-      sax_config.add_top_level_attribute(self.class.to_s, options.merge(:name => name))
-      __add_accessors__  options
-    end
-
-    def value(name, options = {})
-      options[:as] ||= name
-      sax_config.add_top_level_element_value(self.class.to_s, options.merge(:name => name))
-      __add_accessors__  options
-    end
-
-    # we only want to insert the getter and setter if they haven't defined it from elsewhere.
-    # this is how we allow custom parsing behavior. So you could define the setter
-    # and have it parse the string into a date or whatever.
-    def __add_accessors__ options
-      attr_reader options[:as] unless instance_methods.include?(options[:as].to_sym)
-      attr_writer options[:as] unless instance_methods.include?("#{options[:as]}=".to_sym)
+      
+      # we only want to insert the getter and setter if they haven't defined it from elsewhere.
+      # this is how we allow custom parsing behavior. So you could define the setter
+      # and have it parse the string into a date or whatever.
+      method_names = instance_methods.collect(&:to_s)
+      attr_reader options[:as] unless method_names.include?(options[:as].to_s)
+      attr_writer options[:as] unless method_names.include?("#{options[:as]}=".to_s)
     end
 
     def columns
