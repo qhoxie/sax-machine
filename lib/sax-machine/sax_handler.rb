@@ -61,6 +61,7 @@ module SAXMachine
       return unless stack.size > 1 && config && config.name == name
       stack.pop
 
+      unless parsed_config?(object, config)
         if (element_value_config = config.data_class.respond_to?(:sax_config) && config.data_class.sax_config.element_values_for_element)
           element_value_config.each { |evc| element.send(evc.setter, value) }
         end
@@ -82,7 +83,6 @@ module SAXMachine
           object.send(config.setter, value) if value
           mark_as_parsed(object, config)
         end
-      unless parsed_config?(object, config)
       end
     end
 
