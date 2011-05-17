@@ -62,35 +62,37 @@ response.messages.last  # => "world"
 
 h3. attribute and value
 
-      class AuthorElement
-        include SAXMachine
-        value :name
-        attribute :role
-      end
-      class ItemElement
-        include SAXMachine
-        element :title
-        elements :author, :as => :authors, :class => AuthorElement
-      end
- 
-      item = ItemElement.parse(xml = <<-XML)
-        <item id="1">
-          <title>sweet</title>
-          <author role="writer">John Doe</author>
-          <author role="artist">Jane Doe</author>
-        </item>
-      XML
+<pre>
+    class AuthorElement
+      include SAXMachine
+      value :name
+      attribute :role
+    end
+    class ItemElement
+      include SAXMachine
+      element :title
+      elements :author, :as => :authors, :class => AuthorElement
+    end
 
-      item.title # => 'sweet'
-      item.authors.first.name # => 'John Doe'
-      item.authors.last.role # => 'artist'
+    item = ItemElement.parse(xml = <<-XML)
+      <item id="1">
+        <title>sweet</title>
+        <author role="writer">John Doe</author>
+        <author role="artist">Jane Doe</author>
+      </item>
+    XML
 
-      class AuthorRoles
-        include SAXMachine
-        elements :author, :as => :roles, :value => :role
-      end
+    item.title # => 'sweet'
+    item.authors.first.name # => 'John Doe'
+    item.authors.last.role # => 'artist'
 
-      AuthorRoles.parse(xml = <<-XML).parse.roles # => ['writer', 'artist']
+    class AuthorRoles
+      include SAXMachine
+      elements :author, :as => :roles, :value => :role
+    end
+
+    AuthorRoles.parse(xml = <<-XML).parse.roles # => ['writer', 'artist']
+</pre>
 
 
 h3. Laziness/Enumerator - Constant memory usage
