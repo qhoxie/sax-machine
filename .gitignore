@@ -1,3 +1,5 @@
-.idea
-.bundle
 *.gem
+.bundle
+Gemfile.lock
+pkg/*
+rdoc/*

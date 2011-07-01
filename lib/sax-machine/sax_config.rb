@@ -13,11 +13,11 @@ module SAXMachine
       @top_level_element_value = []
       @collection_elements     = {}
     end
-    
+
     def columns
       @top_level_elements.map {|name, ecs| ecs }.flatten
     end
-    
+
     def initialize_copy(sax_config)
       @top_level_elements = sax_config.top_level_elements.clone
       @collection_elements = sax_config.collection_elements.clone
