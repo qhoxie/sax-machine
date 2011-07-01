@@ -14,41 +14,44 @@ module SAXMachine
     else
       Nokogiri::XML::SAX::Parser.new( SAXHandler.new(self) ).parse(thing)
     end
+    
     self
   end
-  
+
   module ClassMethods
 
     def parse(*args)
       new.parse(*args)
     end
     
+    def inherited(subclass)
+      subclass.sax_config.send(:initialize_copy, self.sax_config)
+    end
+
     def element(name, options = {})
       options[:as] ||= name
       sax_config.add_top_level_element(name, options)
-      
-      # we only want to insert the getter and setter if they haven't defined it from elsewhere.
-      # this is how we allow custom parsing behavior. So you could define the setter
-      # and have it parse the string into a date or whatever.
-      method_names = instance_methods.collect(&:to_s)
-      attr_reader options[:as] unless method_names.include?(options[:as].to_s)
-      attr_writer options[:as] unless method_names.include?("#{options[:as]}=".to_s)
+      __add_accessors__  options
     end
-    
+
     def attribute(name, options = {})
       options[:as] ||= name
       sax_config.add_top_level_attribute(self.class.to_s, options.merge(:name => name))
-
-      attr_reader options[:as] unless instance_methods.include?(options[:as].to_s)
-      attr_writer options[:as] unless instance_methods.include?("#{options[:as]}=")
+      __add_accessors__  options
     end
-    
+
     def value(name, options = {})
       options[:as] ||= name
       sax_config.add_top_level_element_value(self.class.to_s, options.merge(:name => name))
-      
-      attr_reader options[:as] unless instance_methods.include?(options[:as].to_s)
-      attr_writer options[:as] unless instance_methods.include?("#{options[:as]}=")
+      __add_accessors__  options
+    end
+    
+    # we only want to insert the getter and setter if they haven't defined it from elsewhere.
+    # this is how we allow custom parsing behavior. So you could define the setter
+    # and have it parse the string into a date or whatever.
+    def __add_accessors__ options
+      attr_reader options[:as] unless instance_methods.include?(options[:as].to_sym)
+      attr_writer options[:as] unless instance_methods.include?("#{options[:as]}=".to_sym)
     end
 
     def columns
@@ -70,7 +73,7 @@ module SAXMachine
     def column_names
       columns.map{|e| e.column}
     end
-    
+
     def elements(name, options = {})
       options[:as] ||= name
       if options[:class]
@@ -92,7 +95,7 @@ module SAXMachine
           end
         SRC
       end
-      
+            
       unless options[:lazy]
         class_eval <<-SRC if !instance_methods.include?(options[:as].to_s)
           def #{options[:as]}
@@ -110,13 +113,12 @@ module SAXMachine
           end
         SRC
       end
-      
+            
       attr_writer options[:as] unless instance_methods.include?("#{options[:as]}=".to_sym)
     end
-    
+
     def sax_config
       @sax_config ||= SAXConfig.new
     end
   end
-  
 end
